@@ -6,8 +6,13 @@ use OpenAdmin\Admin\Controllers\AdminController;
 use OpenAdmin\Admin\Form;
 use OpenAdmin\Admin\Grid;
 use OpenAdmin\Admin\Show;
-use \App\Models\Book;
+use App\Models\Book;
+use App\Models\Chapter;
+use Illuminate\Support\Facades\DB;
 
+use Illuminate\Http\Request;
+
+use Illuminate\Support\Str;
 class BookController extends AdminController
 {
     /**
@@ -16,6 +21,55 @@ class BookController extends AdminController
      * @var string
      */
     protected $title = 'Book';
+
+
+    public function createbook(Request $request)
+    {
+        $slug = Str::slug($request->slug ?? $request->name);
+         
+        if (Book::where('slug', $slug)->exists()) {
+            return response()->json([
+                'message' => 'Truyện đã tồn tại với slug này.',
+                'slug' => $slug
+            ], 409); // 409 Conflict
+        }
+        DB::beginTransaction();
+        try {
+            $book = Book::create([
+                'name' => $request->name,
+                'slug' => Str::slug($request->slug ?? $request->name),
+                'summary' => $request->summary,
+                'description' => $request->description,
+                'category_id' => $request->category_id,
+                'thumb' => $request->thumb,
+                'author' => $request->author,
+                'hot_book' => $request->hot_book ?? 0,
+                'views' => $request->views ?? 0,
+                'active' => $request->active ?? 1,
+                'start_url' => $request->start_url,
+                'source_type' => $request->source_type,
+                'origin_url' => $request->origin_url,
+            ]);
+
+            foreach ($request->chapper ?? [] as $chapter) {
+                Chapter::create([
+                    'book_id' => $book->id,
+                    'name' => $chapter['name'],
+                    'slug' => Str::slug($chapter['slug'] ?? $chapter['name']),
+                    'description' => $chapter['description'] ?? '',
+                    'content' => $chapter['content'],
+                    'active' => $chapter['active'] ?? 1,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json(['id' => $book->id], 201);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['message' => 'Lỗi: ' . $e->getMessage()], 500);
+        }
+    }
 
     /**
      * Make a grid builder.
