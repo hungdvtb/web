@@ -62,11 +62,11 @@ class Usercontroller extends Controller
      */
     public function store(Request $request)
     {
-        // $user = new User();
-        // $user->name = $request->name;
-        // $user->email = $request->email;
-        // $user->password = bcrypt($request->password);
-        // dd($user->password);
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = bcrypt($request->password);
+        dd($user->password);
     }
 
     /**

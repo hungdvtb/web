@@ -13,18 +13,8 @@ class Book extends Model
         'created_at', 'updated_at'
     ];
 
-    protected $fillable = [
-        'name',
-        'slug',
-        'summary',
-        'description',
-        'category_id',
-        'thumb',
-        'author',
-        'hot_book',
-        'views',
-        'active','created_at', 'updated_at'
-    ];
+    protected $guarded = ['created_at', 'updated_at'];
+
 
     public function categories(){
         return $this->hasOne(Category::class, 'id', 'category_id')->withDefault(['name' => '']);
