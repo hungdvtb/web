@@ -24,7 +24,7 @@
                     <p class="text-lg-start fs-4">Chọn Chương</p>
                     <select class="form-select select-chapter" aria-label="Default select example">
                         @foreach ($getAllChapters as $chap)
-                          <option value="{{ route('chapter', ['slug'=>$chap->slug]) }}">{{$chap->name}}</option>
+                          <option value="{{ route('chapter', ['bookslug'=>$chapter->books->slug, 'slug'=>$chap->slug]) }}">{{$chap->name}}</option>
                         @endforeach
                       </select>
                 </div>
@@ -35,11 +35,11 @@
             <div class="col-lg-4 col-md-8 mx-auto">
               <p style="text-align: center;">
                 @if ($preChapter != null)
-                <a href="{{ route('chapter', ['slug'=>$preChapter]) }}" class="btn btn-primary my-2">Chương Trước</a>
+                <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug, 'slug'=>$preChapter]) }}" class="btn btn-primary my-2">Chương Trước</a>
                 @endif
 
                 @if ($nextChapter != null)
-                    <a href="{{ route('chapter', ['slug'=>$nextChapter]) }}" class="btn btn-primary my-2">Chương Sau</a>
+                    <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$nextChapter]) }}" class="btn btn-primary my-2">Chương Sau</a>
                 @endif
               </p>
             </div>
@@ -52,7 +52,7 @@
             <div class="row">
                 <select class="form-select select-chapter" aria-label="Default select example">
                     @foreach ($getAllChapters as $chap)
-                    <option value="{{ route('chapter', ['slug'=>$chap->slug]) }}">{{$chap->name}}</option>
+                    <option value="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$chap->slug]) }}">{{$chap->name}}</option>
                     @endforeach
                 </select>
           </div>
@@ -61,11 +61,11 @@
               <p style="text-align: center;">
                 <p style="text-align: center;">
                     @if ($preChapter != null)
-                    <a href="{{ route('chapter', ['slug'=>$preChapter]) }}" class="btn btn-primary my-2">Chương Trước</a>
+                    <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$preChapter]) }}" class="btn btn-primary my-2">Chương Trước</a>
                     @endif
 
                     @if ($nextChapter != null)
-                        <a href="{{ route('chapter', ['slug'=>$nextChapter]) }}" class="btn btn-primary my-2">Chương Sau</a>
+                        <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$nextChapter]) }}" class="btn btn-primary my-2">Chương Sau</a>
                     @endif
                   </p>
               </p>

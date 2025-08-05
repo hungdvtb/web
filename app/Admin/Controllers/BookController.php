@@ -9,10 +9,11 @@ use OpenAdmin\Admin\Show;
 use App\Models\Book;
 use App\Models\Chapter;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
 class BookController extends AdminController
 {
     /**
@@ -23,10 +24,45 @@ class BookController extends AdminController
     protected $title = 'Book';
 
 
+    public function getcontent(Request $request)
+    {
+        $response = Http::get($request->input('url'));
+        $html = $response->body();
+        return response()->json([
+            'content' => $html
+        ], $response->status());
+    }
+
+    public function uploadImageFromUrlToS3($imageUrl)
+    {
+        try {
+            // Lấy nội dung ảnh từ URL
+            $response = Http::timeout(10)->get($imageUrl);
+
+            if (!$response->successful()) {
+                throw new \Exception('Không lấy được ảnh từ URL');
+            }
+
+            $imageContent = $response->body();
+
+            // Tạo tên file ngẫu nhiên
+            $extension = pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+            $fileName = 'uploads/' . Str::random(40) . '.' . $extension;
+
+            // Upload lên S3
+            Storage::disk('s3')->put($fileName, $imageContent, 'public');
+
+            // Trả về URL công khai
+            return Storage::disk('s3')->url($fileName);
+        } catch (\Exception $e) {
+            return '';
+        }
+    }
+
     public function createbook(Request $request)
     {
         $slug = Str::slug($request->slug ?? $request->name);
-         
+
         if (Book::where('slug', $slug)->exists()) {
             return response()->json([
                 'message' => 'Truyện đã tồn tại với slug này.',
@@ -35,13 +71,14 @@ class BookController extends AdminController
         }
         DB::beginTransaction();
         try {
+             $image = $this->uploadImageFromUrlToS3($request->thumb); 
             $book = Book::create([
                 'name' => $request->name,
                 'slug' => Str::slug($request->slug ?? $request->name),
                 'summary' => $request->summary,
                 'description' => $request->description,
-                'category_id' => $request->category_id,
-                'thumb' => $request->thumb,
+                'category_id' => $request->category_id ? $request->category_id[0] : 0,
+                'thumb' => $image,
                 'author' => $request->author,
                 'hot_book' => $request->hot_book ?? 0,
                 'views' => $request->views ?? 0,
@@ -50,6 +87,7 @@ class BookController extends AdminController
                 'source_type' => $request->source_type,
                 'origin_url' => $request->origin_url,
             ]);
+             $book->book_in_multiple_cate()->attach($request->category_id);
 
             foreach ($request->chapper ?? [] as $chapter) {
                 Chapter::create([
@@ -83,11 +121,11 @@ class BookController extends AdminController
         $grid->column('id', __('Id'));
         $grid->column('name', __('Name'));
         $grid->column('slug', __('Slug'));
-        $grid->column('summary', __('Summary'))->display(function($smr){
-            return mb_substr($smr,0,40);
+        $grid->column('summary', __('Summary'))->display(function ($smr) {
+            return mb_substr($smr, 0, 40);
         });
-        $grid->column('description', __('Description'))->display(function($smr){
-            return mb_substr($smr,0,100);
+        $grid->column('description', __('Description'))->display(function ($smr) {
+            return mb_substr($smr, 0, 100);
         });
         $grid->column('category_id', __('Category id'));
         $grid->column('thumb', __('Thumb'));

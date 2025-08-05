@@ -38,13 +38,13 @@
                         <li class="mt-1">Cập Nhật Lúc: @if ($update_chapter != null)
                             {{$update_chapter->updated_at->diffForHumans()}}
                         @endif</li>
-                        <li class="mt-1">Số Chapter: 32</li>
+                        <li class="mt-1">Số Chapter: {{count($chapters)}}</li>
                         <li class="mt-1">Số Lượt Xem: {{$books->views}}</li>
-                        <li class="mt-1"><a href="">Xem Muc Luc</a></li>
+                        <li class="mt-1"><a href="#mucluc">Xem Muc Luc</a></li>
                         @if ($oneChapter && $lastChapter)
                                 <li class="mt-1">
-                                    <a href="{{ route('chapter', ['slug'=>$oneChapter->slug]) }}" class="btn btn-primary">Đọc Chương Đầu</a>
-                                    <a href="{{ route('chapter', ['slug'=>$lastChapter->slug]) }}" class="btn btn-primary">Đọc Chương Mới Nhất</a>
+                                    <a href="{{ route('chapter', ['bookslug'=> $books->slug, 'slug'=>$oneChapter->slug]) }}" class="btn btn-primary">Đọc Chương Đầu</a>
+                                    <a href="{{ route('chapter', ['bookslug'=> $books->slug, 'slug'=>$lastChapter->slug]) }}" class="btn btn-primary">Đọc Chương Mới Nhất</a>
                                 </li>
                                 <button type="button" class="btn btn-danger btn-thich-truyen mt-3"><i class="fa-solid fa-heart"></i> Truyện Yêu Thích</button>
 
@@ -74,7 +74,7 @@
                   }
               </style>
 
-              <div class="row">
+              <div class="row" id="mucluc">
                         <h4>Mục Lục</h4>
                         <ul class="list-chapter" style="list-style-type: disc;">
                             @php
@@ -82,7 +82,7 @@
                             @endphp
                             @if ($mucluc != 0)
                             @foreach ($chapters as $chapter)
-                                <li class="list-group-item mt-1"><a style="text-decoration: none; color: black;" href="{{ route('chapter', ['slug'=>$chapter->slug]) }}">{{$chapter->name}}</a></li>
+                                <li class="list-group-item mt-1"><a style="text-decoration: none; color: black;" href="{{ route('chapter', ['bookslug'=> $books->slug, 'slug'=>$chapter->slug]) }}">{{$chapter->name}}</a></li>
                             @endforeach
                             @else
                                 <div class="mt-2 card-title alert alert-danger">

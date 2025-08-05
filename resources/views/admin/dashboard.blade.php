@@ -62,6 +62,7 @@
 
  <div id="app">
      <div class="row">
+       
          <div class="col-sm-6">
              <div class="form-group">
                  <label>Nguồn truyện</label>
@@ -69,7 +70,17 @@
                      <option v-for="item in sources" :value="item">[[ item.name ]]</option>
                  </select>
              </div>
-
+             <div class="form-group">
+                <label>Categories</label> 
+                <select v-model="form.category_id" multiple class="form-control"> 
+                    <option v-for="item in options" :key="item" :value="item.id">[[ item.name ]]</option>
+                    </select>
+             </div>
+             <div class="form-group">
+                 <label>Link danh sách truyện</label>
+                 <input v-model="listpageUrl" type="text" class="form-control">
+                 <button @click="fetchAll">Lấy danh sách truyện</button>
+             </div>
              <div class="form-group">
                  <label>Link truyện</label>
                  <input v-model="form.orgin_url" type="text" class="form-control">
@@ -90,12 +101,7 @@
                  <label>Đường dẫn truyện</label>
                  <input v-model="form.slug" class="form-control">
              </div>
-
-             <div class="form-group">
-                 <label>Category ID</label>
-                 <input v-model="form.category_id" type="text" class="form-control">
-             </div>
-
+ 
              <div class="form-group">
                  <label>Tác giả</label>
                  <input v-model="form.author" type="text" class="form-control">
@@ -124,16 +130,23 @@
                  <button @click="crawlChapters" :disabled="isCrawling">Tải chương</button>
                  <button @click="crawlChapters" :disabled="!currentUrl || isCrawling">▶️ Tiếp tục tải chương</button>
                  <button @click="uploadBook" :disabled="loading">
-                    [[ loading ? 'Đang đăng...' : 'Đăng truyện' ]]  
-                    </button>
+                     [[ loading ? 'Đang đăng...' : 'Đăng truyện' ]]
+                 </button>
              </div>
 
              <div class="logs">
-                 <div v-for="log in logs">[[ log ]]</div>
+                 <div v-for="log in reversedTexts">[[ log ]]</div>
              </div>
          </div>
 
          <div class="col-sm-6">
+            <h4>Listbook</h4>
+           <ul>
+            <li v-for="(text, index) in listBooks" :key="index">
+                [[text]]
+            </li>
+            </ul>
+               <h4>Json Upload</h4>
              <pre>[[ resultJson ]]</pre>
          </div>
      </div>
@@ -145,34 +158,42 @@
          el: '#app',
          delimiters: ['[[', ']]'],
          data: {
+            listpageUrl: '',
+            options: <?php echo json_encode($categories) ?>,
              sources: [{
-                 type_code: 'laophatgia',
-                 name: 'laophatgia.net',
-                 content_class: '.text-left',
-                 next_button_class: '.next_page',
-                 name_story_class: '.post-title h1',
-                 image_class: '.summary_image img',
-                 author_class: '.author-content a',
-                 description_class: '.summary__content ',
-                 need_decript: true,
-             },
-            {
-                 type_code: 'truyenfull',
-                 name: 'truyenfull',
-                 content_class: '#chapter-c',
-                 next_button_class: '#next_chap',
-                 name_story_class: 'h3.title',
-                 image_class: '.info-holder .books .book img',
-                 author_class: '.info [itemprop="author"]',
-                 description_class: '.desc-text-full ',
-                 need_decript: false,
-             }],
-             selectedSource: null,
+                     type_code: 'laophatgia', 
+                     name: 'laophatgia.net',
+                     content_class: '.text-left',
+                     next_button_class: '.next_page',
+                     name_story_class: '.post-title h1',
+                     image_class: '.summary_image img',
+                     author_class: '.author-content a',
+                     listpage_book_class: '.item-small_thumbnail .page-item-detail .item-summary .post-title a',
+                     description_class: '.summary__content ',
+                     first_chap: 'chuong-1',
+                     need_decript: true,
+                 },
+                 {
+                     type_code: 'truyenfull',
+                     name: 'truyenfull',
+                     content_class: '#chapter-c',
+                     next_button_class: '#next_chap',
+                     name_story_class: 'h3.title',
+                     image_class: '.info-holder .books .book img',
+                     author_class: '.info [itemprop="author"]',
+                     description_class: '.desc-text-full ',
+                     first_chap: 'chuong-1',
+                     need_decript: false,
+                 }
+             ],
+             selectedSource: {},
              loading: false,
+            decodeMap:[],
+
              form: {
                  name: '',
                  slug: '',
-                 category_id: '',
+                 category_id: [],
                  author: '',
                  summary: '',
                  description: '',
@@ -185,6 +206,11 @@
              currentUrl: '',
              currentIndex: 1,
              isCrawling: false,
+             listBooks: [],
+             currentBookIdx: 0,
+         },
+         mounted(){
+           this.selectedSource =  this.sources[0]
          },
          computed: {
              resultJson() {
@@ -195,29 +221,74 @@
                      author: this.form.author,
                      description: this.form.description,
                      thumb: this.form.thumb,
-                     category_id: this.form.category_id,
+                     category_id: this.form.category_id, 
                      start_url: this.form.start_url,
                      source_type: this.selectedSource?.type_code,
                      orgin_url: this.form.orgin_url,
                      chapper: this.form.chapper
                  }, null, 2);
-             }
+             },
+              reversedTexts() {
+                return this.logs.slice().reverse();
+                },
+                listBooksJS(){
+                    return JSON.stringify(this.listBooks)
+                }
          },
          methods: {
 
-            async uploadBook() {
-                this.loading = true;
-                this.result = null;
-                const payload =JSON.parse(this.resultJson)
-                try {
-                const res = await axios.post('admin/upload-book', payload);
-                this.result = res.data.id;
-                } catch (err) {
-                alert('❌ Lỗi khi đăng truyện: ' + (err.response?.data?.message || err.message));
-                } finally {
-                this.loading = false;
+            async fetchAll(){
+                if (!this.selectedSource || !this.listpageUrl) return alert("Điền link và chọn nguồn");
+                const contentPage = await this.fetchDataFromURL(this.listpageUrl)
+                const doc = new DOMParser().parseFromString(contentPage, 'text/html');
+                this.listBooks = [];
+                doc.querySelectorAll(this.selectedSource.listpage_book_class).forEach(a => {
+                
+                    this.listBooks.push(a.href)
+                });
+                if(this.listBooks.length){
+                    this.form.orgin_url = this.listBooks[0]
+                    this.fetchStoryInfo();
                 }
             },
+            cleanData(){
+                this.form = {
+                 name: '',
+                 slug: '',
+                 category_id: [],
+                 author: '',
+                 summary: '',
+                 description: '',
+                 thumb: '',
+                 start_url: '',
+                 orgin_url: '',
+                 chapper: []
+             };
+             this.currentUrl = '';
+             this.currentIndex = '';
+             this.currentBookIdx++;
+             if(this.currentBookIdx < this.listBooks.length){
+                this.form.orgin_url = this.listBooks[this.currentBookIdx]
+                this.fetchStoryInfo();
+             }
+             
+            },
+             async uploadBook() {
+                 this.loading = true;
+                 this.result = null;
+                 const payload = JSON.parse(this.resultJson)
+                 try {
+                     const res = await axios.post('admin/upload-book', payload);
+                     this.result = res.data.id;
+                     this.logs.push('✅ Đăng truyện thành công: '+ this.form.name);
+                     
+                 } catch (err) {
+                     this.logs.push('❌ Lỗi khi đăng truyện: ' + (err.response?.data?.message || err.message))
+                 } finally {
+                     this.loading = false;
+                     this.cleanData()
+                 }
+             },
              generateSlug() {
                  var str = this.form.name;
                  str = str.toLowerCase();
@@ -245,40 +316,47 @@
                  }
                  return map;
              },
+
+             async fetchDataFromURL(url){
+                const res =   await axios.post('admin/getcontent', {url});
+                const data = res.data;
+                return data.content;
+             },
              async fetchStoryInfo() {
                  if (!this.selectedSource || !this.form.orgin_url) return alert("Điền link và chọn nguồn");
-                 const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(this.form.orgin_url));
-                 const raw = await res.json();
-                 const doc = new DOMParser().parseFromString(raw.contents, 'text/html');
-                if(this.selectedSource.need_decript){
-                         const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
-                    const decodeMap = this.extractBeforeContentStyles(styleText);
-                }
-            
-
+                const contentPage = await this.fetchDataFromURL(this.form.orgin_url)
+                const doc = new DOMParser().parseFromString(contentPage, 'text/html');
+               
+           
+                if (this.selectedSource.need_decript) {
+                    const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
+                    this.decodeMap = this.extractBeforeContentStyles(styleText); 
+                } 
                  const decodeEl = selector => {
                      const el = doc.querySelector(selector);
-                     
+
                      if (!el) return '';
-                      if(this.selectedSource.need_decript){
-                        Object.keys(decodeMap).forEach(sel => {
-                            el.querySelectorAll(sel).forEach(span => {
-                                span.innerHTML = decodeMap[sel] + span.innerHTML;
-                            });
-                        });
-                        }
+                     if (this.selectedSource.need_decript) {
+                         Object.keys(this.decodeMap).forEach(sel => {
+                             el.querySelectorAll(sel).forEach(span => {
+                                 span.innerHTML = this.decodeMap[sel] + span.innerHTML;
+                             });
+                         });
+                     }
                      return el.textContent.trim();
                  };
                  const getImg = (selector) => {
-                    const el = doc.querySelector(selector);
-                    return el ?el.getAttribute('data-src')||  el.src  : '';
-                    };
+                     const el = doc.querySelector(selector);
+                     return el ? el.getAttribute('data-src') || el.src : '';
+                 };
+                 this.form.start_url = `${this.form.orgin_url}${this.form.orgin_url.endsWith('/') ? '': '/'}${this.selectedSource.first_chap}`;
                  this.form.name = decodeEl(this.selectedSource.name_story_class);
                  this.generateSlug();
-                 this.form.thumb =getImg(this.selectedSource.image_class)
+                 this.form.thumb = getImg(this.selectedSource.image_class)
                  this.form.summary = decodeEl(this.selectedSource.description_class);
                  this.form.description = this.form.summary;
                  this.form.author = decodeEl(this.selectedSource.author_class);
+                 this.crawlChapters();
              },
              async uploadImage(e) {
                  const file = e.target.files[0];
@@ -305,25 +383,25 @@
 
                  while (url) {
                      try {
-                         const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url));
-                         const raw = await res.json();
-                         const doc = new DOMParser().parseFromString(raw.contents, 'text/html');
-                         if(this.selectedSource.need_decript){
-                         const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
-                         const decodeMap = this.extractBeforeContentStyles(styleText);
+                         const contentPage = await this.fetchDataFromURL(url)
+                 
+                         const doc = new DOMParser().parseFromString(contentPage, 'text/html');
+                         if (this.selectedSource.need_decript) {
+                            const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
+                            this.decodeMap = this.extractBeforeContentStyles(styleText);
                          }
                          const contentEl = doc.querySelector(this.selectedSource.content_class);
                          if (!contentEl) throw new Error('Không tìm thấy nội dung chương');
-                            if(this.selectedSource.need_decript){
-                            Object.keys(decodeMap).forEach(sel => {
-                                const els = contentEl.querySelectorAll(sel);
-                                els.forEach(el => {
-                                    el.innerHTML = decodeMap[sel] + el.innerHTML;
-                                });
-                            });
+                         if (this.selectedSource.need_decript) {
+                             Object.keys(this.decodeMap).forEach(sel => {
+                                 const els = contentEl.querySelectorAll(sel);
+                                 els.forEach(el => {
+                                     el.innerHTML = this.decodeMap[sel] + el.innerHTML;
+                                 });
+                             });
                          }
 
-                         let content = contentEl.innerHTML 
+                         let content = contentEl.innerHTML
 
                          this.form.chapper.push({
                              name: 'Chương ' + index,
@@ -343,6 +421,7 @@
                              this.logs.push('✅ Đã lấy hết chương');
                              this.currentUrl = '';
                              this.currentIndex = 1;
+                             this.uploadBook();
                              break;
                          }
                      } catch (e) {

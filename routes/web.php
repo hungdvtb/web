@@ -59,7 +59,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/{slug}.html', [HomeController::class, 'doctruyen'])->name('doc-truyen');
 
 Route::get('/danh-muc/{slug}.html', [HomeController::class, 'danhmuc'])->name('danh-muc');
-Route::get('/chapter/{slug}.html', [HomeController::class, 'chapter'])->name('chapter');
+Route::get('/{bookslug}/{slug}.html', [HomeController::class, 'chapter'])->name('chapter');
 Route::get('/search', [HomeController::class, 'Search'])->name('search');
 
 

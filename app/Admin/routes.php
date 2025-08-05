@@ -17,6 +17,6 @@ Route::group([
     $router->resource('chapters', ChapterController::class);
     $router->resource('categories', CategoryController::class);
     $router->post('/upload-book', [App\Admin\Controllers\BookController::class, 'createbook']);
-
+     $router->post('/getcontent', [App\Admin\Controllers\BookController::class, 'getcontent']);
 
 });

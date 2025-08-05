@@ -120,12 +120,12 @@ class HomeController extends Controller
         ]);
     }
 
-    public function chapter($slug=''){
-        $n = Chapter::where('slug', '=', $slug)->first();
-        //breadcrumb
-        $cateb = Book::where('id', '=', $n->book_id)->first();
+    public function chapter($bookslug = '',$slug=''){
+        $cateb = Book::where('slug', '=', $bookslug)->first();
+         //breadcrumb 
 
-        $chapter = Chapter::where('slug', '=', $slug)->where('book_id', '=', $n->book_id)->orderBy('id', 'desc')->first();
+        $chapter = Chapter::where('slug', '=', $slug)->where('book_id', '=', $cateb->id)->orderBy('id', 'desc')->first();
+        $n  = $chapter;
         $getAllChapters = Chapter::where('book_id', '=', $n->book_id)->orderBy('id', 'asc')->get();
         $next_chapter = Chapter::where('book_id', '=', $n->book_id)->where('id', '>', $chapter->id)->min('slug');
         $previous_chapter = Chapter::where('book_id', '=', $n->book_id)->where('id', '<', $chapter->id)->max('slug');
