@@ -76,6 +76,7 @@
                     <option v-for="item in options" :key="item" :value="item.id">[[ item.name ]]</option>
                     </select>
              </div>
+             <div> Last URL: [[lasturl]]</div>
              <div class="form-group">
                  <label>Link danh sách truyện</label>
                  <input v-model="listpageUrl" type="text" class="form-control">
@@ -141,11 +142,11 @@
 
          <div class="col-sm-6">
             <h4>Listbook</h4>
-           <ul>
+           <ol>
             <li v-for="(text, index) in listBooks" :key="index">
-                [[text]]
+               [[text.url]]   [[text.uploaded ? '✅' : '']]
             </li>
-            </ul>
+            </ol>
                <h4>Json Upload</h4>
              <pre>[[ resultJson ]]</pre>
          </div>
@@ -165,6 +166,7 @@
                      name: 'laophatgia.net',
                      content_class: '.text-left',
                      next_button_class: '.next_page',
+                     next_list_book_button_class:'.nav-previous a',
                      name_story_class: '.post-title h1',
                      image_class: '.summary_image img',
                      author_class: '.author-content a',
@@ -178,6 +180,7 @@
                      name: 'truyenfull',
                      content_class: '#chapter-c',
                      next_button_class: '#next_chap',
+                    next_list_book_button_class:'.nav-previous',
                      name_story_class: 'h3.title',
                      image_class: '.info-holder .books .book img',
                      author_class: '.info [itemprop="author"]',
@@ -189,7 +192,7 @@
              selectedSource: {},
              loading: false,
             decodeMap:[],
-
+             countFail: 0,
              form: {
                  name: '',
                  slug: '',
@@ -208,6 +211,7 @@
              isCrawling: false,
              listBooks: [],
              currentBookIdx: 0,
+             currentUrlPage: 0,
          },
          mounted(){
            this.selectedSource =  this.sources[0]
@@ -233,21 +237,45 @@
                 },
                 listBooksJS(){
                     return JSON.stringify(this.listBooks)
+                },
+                lasturl(){
+                    return window.localStorage.getItem('last_url');
                 }
          },
          methods: {
 
             async fetchAll(){
                 if (!this.selectedSource || !this.listpageUrl) return alert("Điền link và chọn nguồn");
-                const contentPage = await this.fetchDataFromURL(this.listpageUrl)
-                const doc = new DOMParser().parseFromString(contentPage, 'text/html');
-                this.listBooks = [];
-                doc.querySelectorAll(this.selectedSource.listpage_book_class).forEach(a => {
+                 let url = this.currentUrlPage || this.listpageUrl;
                 
-                    this.listBooks.push(a.href)
-                });
+                  this.listBooks = [];
+
+                var count = 0;
+                 while (url) {
+                    const contentPage = await this.fetchDataFromURL(url)
+                    const doc = new DOMParser().parseFromString(contentPage, 'text/html');
+                 
+                    doc.querySelectorAll(this.selectedSource.listpage_book_class).forEach(a => { 
+                        this.listBooks.push({url:a.href,uploaded: false})
+                    });
+                     const nextBtn = doc.querySelector(this.selectedSource.next_list_book_button_class);
+                      
+                        if (nextBtn && nextBtn.href) {
+                            url = nextBtn.href; 
+                        } else {
+                            this.logs.push('✅ Đã lấy hết truyện'); 
+                            break;
+                        }
+                        if(count++ > 30){
+                            localStorage.setItem('last_url', url);
+                            break;
+                        }
+                      
+
+                }
                 if(this.listBooks.length){
-                    this.form.orgin_url = this.listBooks[0]
+                    this.form.orgin_url = this.listBooks[0].url;
+                    this.listBooks[0].uploaded = true;
                     this.fetchStoryInfo();
                 }
             },
@@ -265,10 +293,11 @@
                  chapper: []
              };
              this.currentUrl = '';
-             this.currentIndex = '';
+             this.currentIndex = 1;
              this.currentBookIdx++;
              if(this.currentBookIdx < this.listBooks.length){
-                this.form.orgin_url = this.listBooks[this.currentBookIdx]
+                this.form.orgin_url = this.listBooks[this.currentBookIdx].url;
+                this.listBooks[this.currentBookIdx].uploaded = true;
                 this.fetchStoryInfo();
              }
              
@@ -307,6 +336,7 @@
 
                  this.form.slug = str
              },
+           
              extractBeforeContentStyles(styleText) {
                  const map = {};
                  const regex = /(\.[\w-]+):before\s*{[^}]*content:\s*['"]([^'"]+)['"]/g;
@@ -323,11 +353,12 @@
                 return data.content;
              },
              async fetchStoryInfo() {
+                 this.countFail = 0;
                  if (!this.selectedSource || !this.form.orgin_url) return alert("Điền link và chọn nguồn");
                 const contentPage = await this.fetchDataFromURL(this.form.orgin_url)
                 const doc = new DOMParser().parseFromString(contentPage, 'text/html');
                
-           
+                
                 if (this.selectedSource.need_decript) {
                     const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
                     this.decodeMap = this.extractBeforeContentStyles(styleText); 
@@ -428,6 +459,12 @@
                          this.logs.push('❌ Lỗi chương ' + index + ': ' + e.message);
                          this.currentUrl = url;
                          this.currentIndex = index;
+                         this.countFail ++;
+                      
+                         if( this.countFail > 2){
+                            this.cleanData()
+                         }
+                            this.crawlChapters();
                          break;
                      }
                  }
