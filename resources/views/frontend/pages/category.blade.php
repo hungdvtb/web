@@ -1,8 +1,4 @@
-@extends('home.master')
-
-@section('nav')
-    @include('home.pages.nav')
-@endsection
+ @extends('frontend.layout')
 
 @section('content')
             <h3 class="mt-3">{{$title}}</h3>
@@ -45,8 +41,6 @@
 
 @endsection
 
-@section('slide')
-    @include('home.pages.slide')
-@endsection
+ 
 
 

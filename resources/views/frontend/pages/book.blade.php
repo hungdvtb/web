@@ -1,8 +1,5 @@
-@extends('home.master')
-
-  @section('nav')
-  @include('home.pages.nav')
-@endsection
+@extends('frontend.layout')
+ 
 
   @section('content')
   <nav aria-label="breadcrumb">
@@ -143,8 +140,4 @@
   </div>
 
 
-  @endsection
-
-  {{-- @section('slide')
-      @include('home.pages.slide')
-  @endsection --}}
+  @endsection 

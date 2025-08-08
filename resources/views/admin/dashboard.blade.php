@@ -266,7 +266,7 @@
                             this.logs.push('✅ Đã lấy hết truyện'); 
                             break;
                         }
-                        if(count++ > 30){
+                        if(count++ > 2){
                             localStorage.setItem('last_url', url);
                             break;
                         }
@@ -283,7 +283,7 @@
                 this.form = {
                  name: '',
                  slug: '',
-                 category_id: [],
+                 category_id:  this.form.category_id,
                  author: '',
                  summary: '',
                  description: '',

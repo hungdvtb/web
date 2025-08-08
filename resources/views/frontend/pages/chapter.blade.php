@@ -1,7 +1,4 @@
-@extends('home.master')
-
-  @section('nav')
-  @include('home.pages.nav')
+ @extends('frontend.layout')
 @endsection
 
   @section('content')
@@ -76,7 +73,4 @@
 
 
   @endsection
-
-  {{-- @section('slide')
-      @include('home.pages.slide')
-  @endsection --}}
+ 

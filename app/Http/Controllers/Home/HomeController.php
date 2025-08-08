@@ -13,10 +13,13 @@ use Illuminate\Support\Facades\Cookie;
 class HomeController extends Controller
 {
     public function index(){
-        $books = Book::where('active', '=', 1)->orderBy('id', 'desc')->get();
+
+        
+
+        $books = Book::where('active', '=', 1)->orderBy('id', 'desc')->limit(20)->get();
         $cate = Category::where('active', '=', 1)->orderBy('id', 'desc')->get();
         $slides = Book::where('active', '=', 1)->where('hot_book', '=', 1)->orderBy('id', 'desc')->get();
-        return view('home.pages.home', [
+        return view('frontend.pages.home', [
             'title' => 'Home',
             'categories' => $cate,
             'books' => $books,
@@ -29,7 +32,7 @@ class HomeController extends Controller
         $books = Book::where('active', '=', 1)->where('name', 'LIKE', '%'. $char . '%')->orderBy('id', 'desc')->paginate(15);
         $cate = Category::where('active', '=', 1)->orderBy('id', 'desc')->get();
         $slides = Book::where('active', '=', 1)->where('hot_book', '=', 1)->orderBy('id', 'desc')->get();
-        return view('home.pages.fillter', [
+        return view('frontend.pages.fillter', [
             'title' => 'Home',
             'categories' => $cate,
             'books' => $books,
@@ -74,7 +77,7 @@ class HomeController extends Controller
         $category_name = Category::where('slug', '=', $slug)->select('name')->first();
         $slides = Book::where('active', '=', 1)->where('hot_book', '=', 1)->orderBy('id', 'desc')->get();
         $books = Book::where('active', '=', 1)->where('category_id', '=', $category_id->id)->orderBy('id', 'desc')->get();
-        return view('home.pages.category', [
+        return view('frontend.pages.category', [
             'title' => $category_name->name,
             'categories' => Category::where('active', '=', 1)->orderBy('id', 'desc')->get(),
             'books' => $books,
@@ -83,8 +86,8 @@ class HomeController extends Controller
         ]);
     }
 
-    public function doctruyen($slug=''){
-        $n = Book::where('slug', '=', $slug)->first();
+    public function detail($slug=''){
+        $book = Book::where('slug', '=', $slug)->first();
         $chapter = Chapter::where('book_id', '=', $n->id)->orderBy('id', 'asc')->get();
         $update_chapter = Chapter::where('book_id', '=', $n->id)->orderBy('id', 'desc')->first();
         $oneChapter = Chapter::where('book_id', '=', $n->id)->orderBy('id', 'asc')->first();
@@ -105,7 +108,7 @@ class HomeController extends Controller
         }else if($view != null){
             $bookviews->increment('views');
         }
-        return view('home.pages.book', [
+        return view('frontend.pages.book', [
             'title' => $n->name,
             'categories' => Category::where('active', '=', 1)->orderBy('id', 'desc')->get(),
             'books' => $n,
@@ -129,7 +132,7 @@ class HomeController extends Controller
         $getAllChapters = Chapter::where('book_id', '=', $n->book_id)->orderBy('id', 'asc')->get();
         $next_chapter = Chapter::where('book_id', '=', $n->book_id)->where('id', '>', $chapter->id)->min('slug');
         $previous_chapter = Chapter::where('book_id', '=', $n->book_id)->where('id', '<', $chapter->id)->max('slug');
-        return view('home.pages.chapter', [
+        return view('frontend.pages.chapter', [
             'title' => $n->name,
             'categories' => Category::where('active', '=', 1)->orderBy('id', 'desc')->get(),
             'chapter' => $chapter,
@@ -144,7 +147,7 @@ class HomeController extends Controller
     public function Search(){
         $keywords = $_GET['keyword'];
         $books = Book::where('name', 'LIKE', '%'. $keywords . '%')->orWhere('author', 'LIKE', '%'. $keywords . '%')->get();
-        return view('home.pages.search', [
+        return view('frontend.pages.search', [
             'title' => "Tìm Kiếm",
             'categories' => Category::where('active', '=', 1)->orderBy('id', 'desc')->get(),
             'books' => $books,
