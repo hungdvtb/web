@@ -1,76 +1,99 @@
- @extends('frontend.layout')
-@endsection
+@extends('frontend.layout')
+@section('body-class-name','chapter-detail')
+@section('content')
+<!-- Breadcrumb -->
+<nav class="breadcrumb">
+  <a href="{{route('home')}}">Trang chủ</a>
+  <span>></span>
+  @foreach ($book->book_in_multiple_cate as $item)
+  <a href="{{ route('danh-muc', ['slug' => $item->slug]) }}"">{{$item->name}}</a> 
+              <span>></span>
+            @endforeach 
+             <a href=" {{ route('detail', ['slug' => $book->slug]) }}">{{$book->name}}</a>
+  <span>></span>
+  <span class="current">{{$chapter->name}}</span>
+</nav>
 
-  @section('content')
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang Chủ</a></li>
-        @foreach ($cateb->book_in_multiple_cate as $itemssss)
-            <li class="breadcrumb-item"><a href="{{ route('danh-muc', ['slug' => $itemssss->slug]) }}">{{$itemssss->name}}</a></li>
-        @endforeach
-        <li class="breadcrumb-item"><a href="{{ route('doc-truyen', ['slug' => $cateb->slug]) }}">{{$cateb->name}}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{$title}}</li>
-    </ol>
-  </nav>
+<!-- Chapter Header -->
+<div class="chapter-header">
+  <div class="book-title">{{$chapter->book->name}}</div>
+  <h1 class="chapter-title">{{$chapter->name}}</h1>
+</div>
 
-  <div class="row">
-          <div class="row">
-                <h1>{{$chapter->books->name}}</h1>
-                <div class="row">
-                    <p class="text-lg-start fs-3">{{$chapter->name}}</p>
-                    <p class="text-lg-start fs-4">Chọn Chương</p>
-                    <select class="form-select select-chapter" aria-label="Default select example">
-                        @foreach ($getAllChapters as $chap)
-                          <option value="{{ route('chapter', ['bookslug'=>$chapter->books->slug, 'slug'=>$chap->slug]) }}">{{$chap->name}}</option>
-                        @endforeach
-                      </select>
-                </div>
-          </div>
+<!-- Sticky Navigation -->
+<div class="sticky-nav" id="stickyNav">
+  <div class="nav-controls">
+    <a class="nav-button <?= $chapter->previousChapter() ? '' : 'opacityhide' ?> " href="<?= $chapter->previousChapter() ? route('chapter', ['bookslug' => $book->slug, 'slug' => $chapter->previousChapter()->slug]) : 'javascript:void(0)'; ?>" id="prevBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+      Chương trước
+    </a>
 
+    <div class="chapter-selector">
+      <div class="chapter-dropdown" onclick="toggleChapterList()">
+        <span id="currentChapterText"><?= $chapter->name ?></span>
+        <svg class="dropdown-arrow" id="dropdownArrow" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+        </svg>
+      </div>
 
-          <div class="row py-lg-5">
-            <div class="col-lg-4 col-md-8 mx-auto">
-              <p style="text-align: center;">
-                @if ($preChapter != null)
-                <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug, 'slug'=>$preChapter]) }}" class="btn btn-primary my-2">Chương Trước</a>
-                @endif
+      <div class="chapter-list-dropdown" id="chapterListDropdown">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="Search chapters..."
+            oninput="searchChapters(this.value)" id="searchInput">
+        </div>
+        <div class="chapter-list" id="chapterList">
+          <!-- Chapter list will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
 
-                @if ($nextChapter != null)
-                    <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$nextChapter]) }}" class="btn btn-primary my-2">Chương Sau</a>
-                @endif
-              </p>
-            </div>
-          </div>
+    <a class="nav-button <?= $chapter->nextChapter() ? '' : 'opacityhide' ?>" href="<?= $chapter->nextChapter() ? route('chapter', ['bookslug' => $book->slug, 'slug' => $chapter->nextChapter()->slug]) : 'javascript:void(0)'; ?>" id="prevBtn">
+      Chương sau
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+      </svg>
+    </a>
+  </div>
+</div>
 
-            <div class="row mt-3">
-                {!! $chapter->content !!}
-            </div>
+<!-- Chapter Content -->
+<div class="chapter-content">
+  {!! $chapter->content !!}
+</div>
 
-            <div class="row">
-                <select class="form-select select-chapter" aria-label="Default select example">
-                    @foreach ($getAllChapters as $chap)
-                    <option value="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$chap->slug]) }}">{{$chap->name}}</option>
-                    @endforeach
-                </select>
-          </div>
-          <div class="row py-lg-5">
-            <div class="col-lg-4 col-md-8 mx-auto">
-              <p style="text-align: center;">
-                <p style="text-align: center;">
-                    @if ($preChapter != null)
-                    <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$preChapter]) }}" class="btn btn-primary my-2">Chương Trước</a>
-                    @endif
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <a class="bottom-nav-button <?= $chapter->previousChapter() ? '' : 'opacityhide' ?>" href="<?= $chapter->previousChapter() ? route('chapter', ['bookslug' => $book->slug, 'slug' => $chapter->previousChapter()->slug]) : 'javascript:void(0)'; ?>" id="prevBtn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+    </svg>
+    Chương trước
+  </a>
 
-                    @if ($nextChapter != null)
-                        <a href="{{ route('chapter', ['bookslug'=>$chapter->books->slug,'slug'=>$nextChapter]) }}" class="btn btn-primary my-2">Chương Sau</a>
-                    @endif
-                  </p>
-              </p>
-            </div>
-          </div>
-
+  <div class="chapter-info-bottom">
+  
   </div>
 
-
-  @endsection
- 
+  <a class="bottom-nav-button <?= $chapter->nextChapter() ? '' : 'opacityhide' ?>" href="<?= $chapter->nextChapter() ? route('chapter', ['bookslug' => $book->slug, 'slug' => $chapter->nextChapter()->slug]) : 'javascript:void(0)'; ?>" id="prevBtn">
+    Chương sau
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+    </svg>
+  </a>
+</div>
+<script>
+  <?php
+     $chapters = array_map(function ($chapter) use ($book) {
+                $chapter['url'] = route('chapter', ['bookslug' => $book->slug, 'slug' => $chapter['slug']]);
+                return $chapter;
+            }, $book->chapters->toArray());
+            ?>
+  
+  window.dataChapter = <?= json_encode($chapters) ?>;
+  
+  window.currentChapter = <?= $chapter->id ?>
+</script>
+<script src="{{ asset('js/chapter.js') }}"></script>
+@endsection

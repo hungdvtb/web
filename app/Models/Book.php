@@ -21,7 +21,7 @@ class Book extends Model
     }
 
     public function chapters(){
-        return $this->hasMany(Chapter::class, 'book_id', 'id');
+        return $this->hasMany(Chapter::class, 'book_id', 'id')->select('id', 'slug', 'name', 'book_id', 'created_at')->orderBy('id','asc');
     }
 
     public function lastchapters(){

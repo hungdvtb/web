@@ -62,6 +62,8 @@ Route::get('/danh-sach/{slug}.html', [HomeController::class, 'danhmuc'])->name('
 Route::get('/{bookslug}/{slug}.html', [HomeController::class, 'chapter'])->name('chapter');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
 Route::post('/search', [HomeController::class, 'ajaxsearch'])->name('ajaxsearch'); 
+
+Route::post('/review', [HomeController::class, 'review'])->name('review'); 
 //filter
 Route::get('/filtered/{char}', [HomeController::class, 'filteredChar'])->name('filteredChar');
  

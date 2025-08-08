@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 @include('frontend.head')
-<body>
+<body class="@yield('body-class-name')">
     <!-- Header --> 
     @include('frontend.header')
     <!---- content -->
     
     <!-- Main Content -->
-    <div class="main-content">
-         @yield('content')
-        <!-- Section 1: Recommended Books Slider -->
-     
+    <div class="main-content @yield('layout-column')">
+         @yield('content')  
     </div>
 
     <!-- Footer -->
@@ -41,6 +39,6 @@
             <div class="chapters-list" id="tooltipChapters"></div>
         </div>
     </div>
-      <script src="{{ asset('js/app.js') }}"></script>
+   
 </body>
 </html>

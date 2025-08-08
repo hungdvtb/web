@@ -18,7 +18,23 @@ class Chapter extends Model
         'active'
     ];
 
-    public function books(){
+    public function book(){
         return $this->hasOne(Book::class, 'id', 'book_id')->withDefault(['name' => '']);
+    }
+
+    public function nextChapter()
+    {
+        return self::where('book_id', $this->book_id)
+                ->where('id', '>', $this->id)
+                ->orderBy('id', 'asc')
+                ->first();
+    }
+
+    public function previousChapter()
+    {
+        return self::where('book_id', $this->book_id)
+                ->where('id', '<', $this->id)
+                ->orderBy('id', 'desc')
+                ->first();
     }
 }
