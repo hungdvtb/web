@@ -23,8 +23,6 @@ storage/framework/cache/data
 /public/hot
 /public/storage
 /public/mix-manifest.json
-/public/css/
-public/js/
 bootstrap/cache/
 .env.backup
 .env.local
