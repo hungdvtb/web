@@ -15,7 +15,9 @@ class Chapter extends Model
         'slug',
         'description',
         'content',
-        'active'
+        'active',
+        'updated_at',
+        'created_at'
     ];
 
     public function book(){

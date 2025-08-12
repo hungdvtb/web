@@ -62,7 +62,7 @@
 
  <div id="app">
      <div class="row">
-       
+
          <div class="col-sm-6">
              <div class="form-group">
                  <label>Nguồn truyện</label>
@@ -70,12 +70,7 @@
                      <option v-for="item in sources" :value="item">[[ item.name ]]</option>
                  </select>
              </div>
-             <div class="form-group">
-                <label>Categories</label> 
-                <select v-model="form.category_id" multiple class="form-control"> 
-                    <option v-for="item in options" :key="item" :value="item.id">[[ item.name ]]</option>
-                    </select>
-             </div>
+
              <div> Last URL: [[lasturl]]</div>
              <div class="form-group">
                  <label>Link danh sách truyện</label>
@@ -102,12 +97,24 @@
                  <label>Đường dẫn truyện</label>
                  <input v-model="form.slug" class="form-control">
              </div>
- 
+
              <div class="form-group">
                  <label>Tác giả</label>
                  <input v-model="form.author" type="text" class="form-control">
              </div>
+             <div class="form-group">
+                 <label>Thể loại</label>
+                 <input v-model="form.categories" class="form-control"></input>
+             </div>
 
+             <div class="form-group">
+                 <label>Đánh giá</label>
+                 <input v-model="form.categories" class="form-control"></input>
+             </div>
+             <div class="form-group">
+                 <label>Số đánh giá</label>
+                 <input v-model="form.categories" class="form-control"></input>
+             </div>
              <div class="form-group">
                  <label>Mô tả</label>
                  <textarea v-model="form.summary" class="form-control"></textarea>
@@ -120,7 +127,6 @@
 
              <div class="form-group">
                  <label>Link ảnh</label>
-                 <input type="file" @change="uploadImage">
                  <div v-if="form.thumb">
                      <img :src="form.thumb">
                      <small>[[ form.thumb ]]</small>
@@ -141,13 +147,13 @@
          </div>
 
          <div class="col-sm-6">
-            <h4>Listbook</h4>
-           <ol>
-            <li v-for="(text, index) in listBooks" :key="index">
-               [[text.url]]   [[text.uploaded ? '✅' : '']]
-            </li>
-            </ol>
-               <h4>Json Upload</h4>
+             <h4>Listbook</h4>
+             <ol>
+                 <li v-for="(text, index) in listBooks" :key="index">
+                     [[text.url]] [[text.uploaded ? '✅' : '']]
+                 </li>
+             </ol>
+             <h4>Json Upload</h4>
              <pre>[[ resultJson ]]</pre>
          </div>
      </div>
@@ -159,16 +165,20 @@
          el: '#app',
          delimiters: ['[[', ']]'],
          data: {
-            listpageUrl: '',
-            options: <?php echo json_encode($categories) ?>,
+             listpageUrl: window.localStorage.getItem('last_url'),
+             options: <?php echo json_encode($categories) ?>,
              sources: [{
-                     type_code: 'laophatgia', 
+                     type_code: 'laophatgia',
                      name: 'laophatgia.net',
                      content_class: '.text-left',
                      next_button_class: '.next_page',
-                     next_list_book_button_class:'.nav-previous a',
+                     next_list_book_button_class: '.nav-previous a',
                      name_story_class: '.post-title h1',
                      image_class: '.summary_image img',
+                     type_class: '.genres-content a',
+                     review_average_class: '#averagerate',
+                     view_number_class: '.summary-content:not(:has(*))',
+                     total_review_class: '#countrate',
                      author_class: '.author-content a',
                      listpage_book_class: '.item-small_thumbnail .page-item-detail .item-summary .post-title a',
                      description_class: '.summary__content ',
@@ -180,7 +190,7 @@
                      name: 'truyenfull',
                      content_class: '#chapter-c',
                      next_button_class: '#next_chap',
-                    next_list_book_button_class:'.nav-previous',
+                     next_list_book_button_class: '.nav-previous',
                      name_story_class: 'h3.title',
                      image_class: '.info-holder .books .book img',
                      author_class: '.info [itemprop="author"]',
@@ -191,15 +201,18 @@
              ],
              selectedSource: {},
              loading: false,
-            decodeMap:[],
+             decodeMap: [],
              countFail: 0,
              form: {
                  name: '',
                  slug: '',
-                 category_id: [],
+                 categories: [],
                  author: '',
                  summary: '',
                  description: '',
+                 rate: 0,
+                 rate_count: 0,
+                 views: 0,
                  thumb: '',
                  start_url: '',
                  orgin_url: '',
@@ -213,8 +226,8 @@
              currentBookIdx: 0,
              currentUrlPage: 0,
          },
-         mounted(){
-           this.selectedSource =  this.sources[0]
+         mounted() {
+             this.selectedSource = this.sources[0]
          },
          computed: {
              resultJson() {
@@ -225,97 +238,107 @@
                      author: this.form.author,
                      description: this.form.description,
                      thumb: this.form.thumb,
-                     category_id: this.form.category_id, 
+                     categories: this.form.categories,
+                     rate: this.form.rate,
+                     rate_count: this.form.rate_count,
+                     views: this.form.views,
                      start_url: this.form.start_url,
                      source_type: this.selectedSource?.type_code,
                      orgin_url: this.form.orgin_url,
                      chapper: this.form.chapper
                  }, null, 2);
              },
-              reversedTexts() {
-                return this.logs.slice().reverse();
-                },
-                listBooksJS(){
-                    return JSON.stringify(this.listBooks)
-                },
-                lasturl(){
-                    return window.localStorage.getItem('last_url');
-                }
+             reversedTexts() {
+                 return this.logs.slice().reverse();
+             },
+             listBooksJS() {
+                 return JSON.stringify(this.listBooks)
+             },
+             lasturl() {
+                 return window.localStorage.getItem('last_url');
+             }
          },
          methods: {
 
-            async fetchAll(){
-                if (!this.selectedSource || !this.listpageUrl) return alert("Điền link và chọn nguồn");
+             async fetchAll() {
+                 if (!this.selectedSource || !this.listpageUrl) return alert("Điền link và chọn nguồn");
                  let url = this.currentUrlPage || this.listpageUrl;
-                
-                  this.listBooks = [];
 
-                var count = 0;
+                 this.listBooks = [];
+
+                 var count = 0;
                  while (url) {
-                    const contentPage = await this.fetchDataFromURL(url)
-                    const doc = new DOMParser().parseFromString(contentPage, 'text/html');
-                 
-                    doc.querySelectorAll(this.selectedSource.listpage_book_class).forEach(a => { 
-                        this.listBooks.push({url:a.href,uploaded: false})
-                    });
-                     const nextBtn = doc.querySelector(this.selectedSource.next_list_book_button_class);
-                      
-                        if (nextBtn && nextBtn.href) {
-                            url = nextBtn.href; 
-                        } else {
-                            this.logs.push('✅ Đã lấy hết truyện'); 
-                            break;
-                        }
-                        if(count++ > 2){
-                            localStorage.setItem('last_url', url);
-                            break;
-                        }
-                      
+                     const contentPage = await this.fetchDataFromURL(url)
+                     const doc = new DOMParser().parseFromString(contentPage, 'text/html');
 
-                }
-                if(this.listBooks.length){
-                    this.form.orgin_url = this.listBooks[0].url;
-                    this.listBooks[0].uploaded = true;
-                    this.fetchStoryInfo();
-                }
-            },
-            cleanData(){
-                this.form = {
-                 name: '',
-                 slug: '',
-                 category_id:  this.form.category_id,
-                 author: '',
-                 summary: '',
-                 description: '',
-                 thumb: '',
-                 start_url: '',
-                 orgin_url: '',
-                 chapper: []
-             };
-             this.currentUrl = '';
-             this.currentIndex = 1;
-             this.currentBookIdx++;
-             if(this.currentBookIdx < this.listBooks.length){
-                this.form.orgin_url = this.listBooks[this.currentBookIdx].url;
-                this.listBooks[this.currentBookIdx].uploaded = true;
-                this.fetchStoryInfo();
-             }
-             
-            },
+                     doc.querySelectorAll(this.selectedSource.listpage_book_class).forEach(a => {
+                         this.listBooks.push({
+                             url: a.href,
+                             uploaded: false
+                         })
+                     });
+                     const nextBtn = doc.querySelector(this.selectedSource.next_list_book_button_class);
+
+                     if (nextBtn && nextBtn.href) {
+                         url = nextBtn.href;
+                     } else {
+                         this.logs.push('✅ Đã lấy hết truyện');
+                         break;
+                     }
+                     if (count++ > 2) {
+                         localStorage.setItem('last_url', url);
+                         break;
+                     }
+
+
+                 }
+                 if (this.listBooks.length) {
+                     this.form.orgin_url = this.listBooks[0].url;
+                     this.listBooks[0].uploaded = true;
+                     this.fetchStoryInfo();
+                 }
+             },
+             cleanData() {
+                 this.form = {
+                     name: '',
+                     slug: '',
+                     categories: [],
+                     author: '',
+                     summary: '',
+                     description: '',
+                     rate: 0,
+                     rate_count: 0,
+                     views: 0,
+                     thumb: '',
+                     start_url: '',
+                     orgin_url: '',
+                     chapper: []
+                 };
+                 this.currentUrl = '';
+                 this.currentIndex = 1;
+                 this.currentBookIdx++;
+                 if (this.currentBookIdx < this.listBooks.length) {
+                     this.form.orgin_url = this.listBooks[this.currentBookIdx].url;
+                     this.listBooks[this.currentBookIdx].uploaded = true;
+                     this.fetchStoryInfo();
+                 }
+
+             },
              async uploadBook() {
+
                  this.loading = true;
                  this.result = null;
                  const payload = JSON.parse(this.resultJson)
                  try {
                      const res = await axios.post('admin/upload-book', payload);
                      this.result = res.data.id;
-                     this.logs.push('✅ Đăng truyện thành công: '+ this.form.name);
-                     
+                     this.logs.push('✅ Đăng truyện thành công: ' + this.form.name);
+
                  } catch (err) {
                      this.logs.push('❌ Lỗi khi đăng truyện: ' + (err.response?.data?.message || err.message))
                  } finally {
                      this.loading = false;
-                     this.cleanData()
+                    this.cleanData()
                  }
              },
              generateSlug() {
@@ -336,7 +359,7 @@
 
                  this.form.slug = str
              },
-           
+
              extractBeforeContentStyles(styleText) {
                  const map = {};
                  const regex = /(\.[\w-]+):before\s*{[^}]*content:\s*['"]([^'"]+)['"]/g;
@@ -347,46 +370,81 @@
                  return map;
              },
 
-             async fetchDataFromURL(url){
-                const res =   await axios.post('admin/getcontent', {url});
-                const data = res.data;
-                return data.content;
+             async fetchDataFromURL(url) {
+                 const res = await axios.post('admin/getcontent', {
+                     url
+                 });
+                 const data = res.data;
+                 return data.content;
              },
              async fetchStoryInfo() {
                  this.countFail = 0;
                  if (!this.selectedSource || !this.form.orgin_url) return alert("Điền link và chọn nguồn");
-                const contentPage = await this.fetchDataFromURL(this.form.orgin_url)
-                const doc = new DOMParser().parseFromString(contentPage, 'text/html');
-               
-                
-                if (this.selectedSource.need_decript) {
-                    const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
-                    this.decodeMap = this.extractBeforeContentStyles(styleText); 
-                } 
+                 const contentPage = await this.fetchDataFromURL(this.form.orgin_url)
+                 const doc = new DOMParser().parseFromString(contentPage, 'text/html');
+
+
+                 if (this.selectedSource.need_decript) {
+                     const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
+                     this.decodeMap = this.extractBeforeContentStyles(styleText);
+                 }
+
                  const decodeEl = selector => {
                      const el = doc.querySelector(selector);
 
                      if (!el) return '';
                      if (this.selectedSource.need_decript) {
                          Object.keys(this.decodeMap).forEach(sel => {
+
                              el.querySelectorAll(sel).forEach(span => {
                                  span.innerHTML = this.decodeMap[sel] + span.innerHTML;
                              });
                          });
                      }
-                     return el.textContent.trim();
+                     return el.innerHTML.replace(/[\n\t]/g, " ").trim();
                  };
                  const getImg = (selector) => {
                      const el = doc.querySelector(selector);
                      return el ? el.getAttribute('data-src') || el.src : '';
                  };
+
+                 function parseViewsFromText(text) {
+                     // Find number + optional K/M that is followed by "views"
+                     const match = text.match(/([\d.]+)([KM]?)\s*views/i);
+                     if (match) {
+                         let number = parseFloat(match[1]);
+                         let suffix = match[2].toUpperCase();
+
+                         switch (suffix) {
+                             case 'K':
+                                 return number * 1000;
+                             case 'M':
+                                 return number * 1000000;
+                             default:
+                                 return number;
+                         }
+                     }
+                     return 0;
+                 }
+
+
                  this.form.start_url = `${this.form.orgin_url}${this.form.orgin_url.endsWith('/') ? '': '/'}${this.selectedSource.first_chap}`;
-                 this.form.name = decodeEl(this.selectedSource.name_story_class);
+                 this.form.name = doc.querySelector(this.selectedSource.name_story_class).innerHTML.trim();
                  this.generateSlug();
                  this.form.thumb = getImg(this.selectedSource.image_class)
                  this.form.summary = decodeEl(this.selectedSource.description_class);
                  this.form.description = this.form.summary;
                  this.form.author = decodeEl(this.selectedSource.author_class);
+                 const viewsNumber = doc.querySelector(this.selectedSource.view_number_class).innerHTML;
+                 this.form.views = parseViewsFromText(viewsNumber);
+                 var self = this;
+                 doc.querySelectorAll(this.selectedSource.type_class).forEach(function(el) {
+
+                     self.form.categories.push(el.innerHTML)
+                 });
+                 this.form.rate = doc.querySelector(this.selectedSource.review_average_class) ? doc.querySelector(this.selectedSource.review_average_class).innerHTML.trim() : 0
+                 this.form.rate_count =doc.querySelector(this.selectedSource.total_review_class) ? doc.querySelector(this.selectedSource.total_review_class).innerHTML.trim() : 0
+
                  this.crawlChapters();
              },
              async uploadImage(e) {
@@ -407,7 +465,7 @@
                  if (!this.selectedSource || (!this.form.start_url && !this.currentUrl)) return alert("Thiếu thông tin crawl");
 
                  this.isCrawling = true;
-                 this.logs.push(this.currentIndex === 1 ? '📖 Bắt đầu crawl chương...' : '🔄 Tiếp tục crawl chương...');
+                 this.logs.push(this.currentIndex === 1 ? '📖 Bắt đầu tải  chương...' : '🔄 Tiếp tục crawl chương...');
 
                  let url = this.currentUrl || this.form.start_url;
                  let index = this.currentIndex;
@@ -415,11 +473,11 @@
                  while (url) {
                      try {
                          const contentPage = await this.fetchDataFromURL(url)
-                 
+
                          const doc = new DOMParser().parseFromString(contentPage, 'text/html');
                          if (this.selectedSource.need_decript) {
-                            const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
-                            this.decodeMap = this.extractBeforeContentStyles(styleText);
+                             const styleText = [...doc.querySelectorAll('style')].map(s => s.innerHTML).join('\n');
+                             this.decodeMap = this.extractBeforeContentStyles(styleText);
                          }
                          const contentEl = doc.querySelector(this.selectedSource.content_class);
                          if (!contentEl) throw new Error('Không tìm thấy nội dung chương');
@@ -431,12 +489,16 @@
                                  });
                              });
                          }
+                         const time = doc.querySelector('meta[property="og:updated_time"]');
+                         var updated_at = time ? time.getAttribute('content') : new Date().toISOString();
 
                          let content = contentEl.innerHTML
 
                          this.form.chapper.push({
+                             number: index,
                              name: 'Chương ' + index,
                              slug: 'chuong-' + index,
+                             updated_at,
                              content
                          });
 
@@ -449,7 +511,7 @@
                              this.currentUrl = url;
                              this.currentIndex = index;
                          } else {
-                             this.logs.push('✅ Đã lấy hết chương');
+                             this.logs.push('✅ Đã lấy hết chương. Tải truyên lên');
                              this.currentUrl = '';
                              this.currentIndex = 1;
                              this.uploadBook();
@@ -459,12 +521,12 @@
                          this.logs.push('❌ Lỗi chương ' + index + ': ' + e.message);
                          this.currentUrl = url;
                          this.currentIndex = index;
-                         this.countFail ++;
-                      
-                         if( this.countFail > 2){
-                            this.cleanData()
+                         this.countFail++;
+
+                         if (this.countFail > 2) {
+                             this.cleanData()
                          }
-                            this.crawlChapters();
+                         this.crawlChapters();
                          break;
                      }
                  }

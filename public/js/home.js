@@ -244,92 +244,34 @@ function toggleMobileDropdown(event, dropdownId) {
 }
 
 // Search functionality
-let searchTimeout;
+ 
+function renderReadingHistory() {
+    let history = JSON.parse(localStorage.getItem('reading_history') || '[]');
+    let container = document.getElementById('reading-history');
 
-function searchStories(query) {
-  clearTimeout(searchTimeout);
-
-  if (query.length > 0) {
-    // Show suggestions after a short delay
-    searchTimeout = setTimeout(() => {
-      showSearchSuggestions();
-      filterSuggestions(query);
-    }, 200);
-  } else {
-    hideSearchSuggestions();
-    hideMobileSearchSuggestions();
-  }
-}
-
-function showSearchSuggestions() {
-  const dropdown = document.getElementById('searchDropdown');
-  if (dropdown) {
-    dropdown.classList.add('show');
-  }
-}
-
-function hideSearchSuggestions() {
-  setTimeout(() => {
-    const dropdown = document.getElementById('searchDropdown');
-    if (dropdown) {
-      dropdown.classList.remove('show');
+    if (!history.length) { 
+        return;
     }
-  }, 150);
+
+    let html = "";
+    history = history.slice(0,5); // Limit to last 5 items
+    history.forEach(item => {
+        html +=`
+          <div class="recent-item">
+                  <div class="recent-info">
+                      <div class="recent-title"><a href="${item.book_url}">${item.book_name}</a></div>
+                      <div class="recent-chapter"><a href="${item.chapter_url}">${item.name}</a></div>
+                  </div>
+              </div>
+        ` 
+    }); 
+
+    container.innerHTML = html;
 }
 
-function showMobileSearchSuggestions() {
-  const dropdown = document.getElementById('mobileSearchDropdown');
-  if (dropdown) {
-    dropdown.classList.add('show');
-  }
-}
-
-function hideMobileSearchSuggestions() {
-  setTimeout(() => {
-    const dropdown = document.getElementById('mobileSearchDropdown');
-    if (dropdown) {
-      dropdown.classList.remove('show');
-    }
-  }, 150);
-}
-
-function filterSuggestions(query) {
-  const suggestions = document.querySelectorAll('.search-suggestion');
-  const lowerQuery = query.toLowerCase();
-
-  suggestions.forEach(suggestion => {
-    const text = suggestion.querySelector('.suggestion-text').textContent.toLowerCase();
-    if (text.includes(lowerQuery)) {
-      suggestion.style.display = 'flex';
-    } else {
-      suggestion.style.display = 'none';
-    }
-  });
-}
-
-function selectSuggestion(text, type) {
-  // Fill the search input
-  const searchInputs = document.querySelectorAll('.search-input, .mobile-search-input');
-  searchInputs.forEach(input => {
-    input.value = text;
-  });
-
-  // Hide dropdowns
-  hideSearchSuggestions();
-  hideMobileSearchSuggestions();
-
-  // Perform search
-  alert(`Searching for ${type}: "${text}"`);
-}
-
-// Header actions
-function openAccount() {
-  alert('Opening account settings and profile management...');
-}
-
-function openUserMenu() {
-  alert('Opening user menu with reading history, favorites, and preferences...');
-}
+// Gọi hàm khi load trang
+document.addEventListener('DOMContentLoaded', renderReadingHistory);
+ 
 
 // Book slider functionality
 function slideBooks(direction) {
@@ -439,19 +381,7 @@ function startAutoSlide() {
     slideBooks(1);
   }, 4000);
 }
-
-// Book interactions
-function openBook(bookId) {
-  alert(`Opening book: ${bookId}. You'll be taken to the book details page.`);
-}
-
-function openStory(storyId) {
-  alert(`Opening story: ${storyId}. You'll be taken to the reading page.`);
-}
-
-function showMoreStories() {
-  alert('Loading more stories... You\'ll see additional romance novels in the list.');
-}
+ 
 
 // Tab functionality
 function switchTab(tabName) {
@@ -464,101 +394,12 @@ function switchTab(tabName) {
   document.getElementById(tabName + '-content').classList.add('active');
 }
 
-// Genre exploration
-function exploreGenre(genre) {
-  const genreNames = {
-    'contemporary': 'Contemporary Romance',
-    'historical': 'Historical Romance',
-    'fantasy': 'Fantasy Romance',
-    'paranormal': 'Paranormal Romance',
-    'young-adult': 'Young Adult Romance',
-    'romantic-suspense': 'Romantic Suspense',
-    'western': 'Western Romance',
-    'sci-fi': 'Sci-Fi Romance',
-    'erotic': 'Erotic Romance',
-    'lgbtq': 'LGBTQ+ Romance',
-    'multicultural': 'Multicultural Romance',
-    'inspirational': 'Inspirational Romance'
-  };
-
-  alert(`Exploring ${genreNames[genre]} stories! You'll be taken to the genre page with filtered results.`);
-}
+ 
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function () {
   // Navigation interactions
-  const navLinks = document.querySelectorAll('.nav-link');
-  navLinks.forEach(link => {
-    if (!link.querySelector('.dropdown-arrow')) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // Remove active class from all links
-        navLinks.forEach(l => l.classList.remove('active'));
-
-        // Add active class to clicked link
-        this.classList.add('active');
-
-        const linkText = this.textContent.trim();
-        alert(`Navigating to ${linkText} section...`);
-      });
-    }
-  });
-
-  // Dropdown items
-  const dropdownItems = document.querySelectorAll('.dropdown-item');
-  dropdownItems.forEach(item => {
-    item.addEventListener('click', function (e) {
-      e.preventDefault();
-      const itemText = this.textContent;
-      alert(`Navigating to ${itemText}...`);
-    });
-  });
-
-  // Mobile navigation
-  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-  mobileNavLinks.forEach(link => {
-    if (!link.querySelector('svg')) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // Remove active class from all mobile links
-        mobileNavLinks.forEach(l => l.classList.remove('active'));
-
-        // Add active class to clicked link
-        this.classList.add('active');
-
-        const linkText = this.textContent.trim();
-        alert(`Navigating to ${linkText} section...`);
-
-        // Close mobile menu
-        document.getElementById('mobileNav').classList.remove('active');
-      });
-    }
-  });
-
-  // Mobile dropdown items
-  const mobileDropdownItems = document.querySelectorAll('.mobile-dropdown-item');
-  mobileDropdownItems.forEach(item => {
-    item.addEventListener('click', function (e) {
-      e.preventDefault();
-      const itemText = this.textContent;
-      alert(`Navigating to ${itemText}...`);
-
-      // Close mobile menu
-      document.getElementById('mobileNav').classList.remove('active');
-    });
-  });
-
-  // Close mobile menu when clicking outside
-  document.addEventListener('click', function (e) {
-    const mobileNav = document.getElementById('mobileNav');
-    const mobileToggle = document.querySelector('.mobile-menu-toggle');
-
-    if (!mobileNav.contains(e.target) && !mobileToggle.contains(e.target)) {
-      mobileNav.classList.remove('active');
-    }
-  });
+ 
 
   // Start auto-slide
   startAutoSlide();

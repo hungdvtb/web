@@ -47,6 +47,8 @@ async function  rateBook(event) {
          alert(error.message); 
     } 
 }
+
+
 function hoverDisplay(rating){
     const stars = document.querySelectorAll('.star');
     stars.forEach((star, index) => {
@@ -437,13 +439,12 @@ function jumpToPage() {
     }
 }
 
-// Book actions
- 
-
+// Book actions 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Generate sample chapter data
     const chapters = generateChapterData(); 
+    
     // Initialize pagination system
     chapterPagination = new ChapterPagination(chapters);
     
@@ -465,3 +466,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }); 
     
 });
+
+function toggleDescription() {
+    const description = document.getElementById('bookDescription');
+    const viewMoreBtn = document.getElementById('viewMoreBtn');
+  
+    description.classList.remove('collapsed');
+    viewMoreBtn.style.display = 'none';
+    
+}

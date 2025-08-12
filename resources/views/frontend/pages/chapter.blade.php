@@ -95,5 +95,16 @@
   
   window.currentChapter = <?= $chapter->id ?>
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {  
+ 
+    let history = JSON.parse(localStorage.getItem('reading_history') || '[]'); 
+    let bookId = <?= $book->id ?>;
+    history = history.filter(item => item.book_id != bookId);
+ 
+    history.unshift(<?= json_encode($chapterData )?>); 
+    localStorage.setItem('reading_history', JSON.stringify(history));
+});
+</script>
 <script src="{{ asset('js/chapter.js') }}"></script>
 @endsection

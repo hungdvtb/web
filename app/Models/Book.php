@@ -13,7 +13,7 @@ class Book extends Model
         'created_at', 'updated_at'
     ];
 
-    protected $guarded = ['created_at', 'updated_at'];
+    protected $guarded = ['created_at'];
 
 
     public function categories(){
@@ -25,7 +25,7 @@ class Book extends Model
     }
 
     public function lastchapters(){
-        return $this->hasMany(Chapter::class, 'book_id', 'id')->orderBy('id','desc')->limit(6);
+        return $this->hasMany(Chapter::class, 'book_id', 'id')->select('id', 'slug', 'name', 'book_id', 'created_at')->orderBy('id','desc')->limit(6);
     }
 
     public function book_in_multiple_cate(){

@@ -2,6 +2,13 @@
 <html lang="en">
 @include('frontend.head')
 <body class="@yield('body-class-name')">
+
+    <?php if(env('GOOGLE_TAG_ID')): ?>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?= env('GOOGLE_TAG_ID') ?>"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+    <?php endif; ?>
     <!-- Header --> 
     @include('frontend.header')
     <!---- content -->
@@ -39,6 +46,6 @@
             <div class="chapters-list" id="tooltipChapters"></div>
         </div>
     </div>
-   
+   <script src="{{ asset('js/app.js') }}"></script>
 </body>
 </html>

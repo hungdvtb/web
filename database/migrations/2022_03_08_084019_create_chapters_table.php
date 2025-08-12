@@ -17,6 +17,7 @@ class CreateChaptersTable extends Migration
             $table->id();
             $table->integer('book_id');
             $table->string('name', 255);
+            $table->string('slug');
             $table->string('description', 255);
             $table->text('content');
             $table->integer('active');

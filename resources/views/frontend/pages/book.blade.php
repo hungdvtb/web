@@ -48,6 +48,17 @@
                             <span class="meta-label">Số chương</span>
                             <span class="meta-value">{{ $book->chapters->count()}}</span>
                         </div> 
+                          <div class="meta-item">
+                            <span class="meta-label">Lượt view</span>
+                            <span class="meta-value">{{ formatViews($book->views)}}</span>
+                        </div> 
+                          <div class="meta-item">
+                            <span class="meta-label">Thể loại</span>
+                            <span class="meta-value"> @foreach ($book->book_in_multiple_cate as $item)
+          <a href="{{ route('danh-muc', ['slug' => $item->slug]) }}"">{{$item->name}}</a> 
+        @endforeach
+    </span>
+                        </div> 
                     </div>
 
                     <div class="rating-section" id="ratingSection">
@@ -71,8 +82,11 @@
                     </div>
                 </div>
 
-                <div class="book-description">
-                                {!! $book->description !!}
+                <div class="book-description collapsed" id="bookDescription">
+                    {!! $book->description !!}
+                </div>
+                <div class="view-more">
+                    <button type="button" id="viewMoreBtn" onClick="toggleDescription()">Xem thêm</button>
                 </div>
             </div>
         </div>
@@ -82,7 +96,7 @@
     <div class="chapters-section" id="chaptersSection">
 
     
-        <h2 class="section-title">Chapters</h2> 
+        <h2 class="section-title">Danh sách chương</h2> 
         <div class="chapters-list" id="chaptersGrid">
             <div class="chapter-item" >
                 <div class="chapter-info">

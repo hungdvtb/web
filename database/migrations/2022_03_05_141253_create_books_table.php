@@ -17,6 +17,7 @@ class CreateBooksTable extends Migration
             $table->id();
             $table->string('name', 100);
             $table->text('description', 300);
+            $table->string('slug');
             $table->integer('category_id');
             $table->string('thumb', 300);
             $table->integer('active');

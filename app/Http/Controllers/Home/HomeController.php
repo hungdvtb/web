@@ -59,12 +59,12 @@ class HomeController extends Controller
     }
     public function index()
     {
-        $books = Book::where('active', '=', 1)->orderBy('id', 'desc')->limit(20)->get();
-        $cate = Category::where('active', '=', 1)->orderBy('id', 'desc')->get();
+        $books = Book::where('active', '=', 1)->orderBy('last_updated', 'desc')->limit(20)->get();
+        $categories = Category::where('active', '=', 1)->orderBy('id', 'desc')->get();
         $slides = Book::where('active', '=', 1)->where('hot_book', '=', 1)->orderBy('id', 'desc')->get();
         return view('frontend.pages.home', [
             'title' => 'Home',
-            'categories' => $cate,
+            'categories' => $categories,
             'books' => $books,
             'slides' => $slides
         ]);
@@ -171,10 +171,18 @@ class HomeController extends Controller
             $query->with('chapters');
         }])->where('book_id', '=', $book->id)->first();
          
-       
+       $chapterData = [
+            'id' => $chapter->id,
+            'book_id' => $book->id,
+            'book_name' => $book->name,
+            'name' => $chapter->name,
+            'chapter_url' =>route('chapter', ['bookslug' => $book->slug, 'slug' => $chapter->slug]),
+            'book_url' => route('detail', ['slug' => $book->slug]), 
+        ];
         return view('frontend.pages.chapter', [
             'chapter' => $chapter,
-            'book'=> $chapter->book
+            'book'=> $chapter->book,
+            'chapterData'=> $chapterData
         ]);
     }
 

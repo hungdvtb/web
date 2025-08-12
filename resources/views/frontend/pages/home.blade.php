@@ -50,39 +50,29 @@
          </h3>
          @foreach($books as $book)
          <div class="story-list">
-             <div class="story-item" onmouseenter="showTooltip(event, <?= $book->id ?>)" onmouseleave="hideTooltip()"> 
-                     <div class="story-cover">
-                        <a href="  {{ route('detail', ['slug' => $book->slug]) }}">
+             <div class="story-item" onmouseenter="showTooltip(event, <?= $book->id ?>)" onmouseleave="hideTooltip()">
+                 <div class="story-cover">
+                     <a href="  {{ route('detail', ['slug' => $book->slug]) }}">
                          <img src="{{$book->thumb}}" />
-                        </a>
-                     </div>
-                     <div class="story-info">
-                         <div>
-                             <div class="story-title"><a href="  {{ route('detail', ['slug' => $book->slug]) }}">{{ $book->name}}</a></div>
-                             <div class="story-author">{{$book->author}}</div>
-                             <div class="story-rating">
-                                 <div class="stars">
-                                     <svg class="star" viewBox="0 0 24 24" fill="currentColor">
-                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                     </a>
+                 </div>
+                 <div class="story-info">
+                     <div>
+                         <div class="story-title"><a href="  {{ route('detail', ['slug' => $book->slug]) }}">{{ $book->name}}</a></div>
+                         <div class="story-author">{{$book->author}}</div>
+                         <div class="story-rating">
+                             <div class="stars">
+                                 @for ($i = 1; $i <= 5; $i++)
+                                     <svg class="star <?= $i > round($book->average_rating) ? 'empty' : '' ?>" viewBox="0 0 24 24" fill="currentColor">
+                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                      </svg>
-                                     <svg class="star" viewBox="0 0 24 24" fill="currentColor">
-                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                     </svg>
-                                     <svg class="star" viewBox="0 0 24 24" fill="currentColor">
-                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                     </svg>
-                                     <svg class="star" viewBox="0 0 24 24" fill="currentColor">
-                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                     </svg>
-                                     <svg class="star empty" viewBox="0 0 24 24" fill="currentColor">
-                                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                     </svg>
-                                 </div>
-                                 <span class="rating-text">4.5</span>
+                                     @endfor 
                              </div>
+                             <span class="rating-text">{{$book->average_rating}}</span>
                          </div>
-                         <div class="latest-chapter">Chapter 45</div>
                      </div>
+                     <div class="latest-chapter"><a href="  {{ route('chapter', ['bookslug'=>$book->slug, 'slug' => $book->lastchapters->toArray()[0]['slug']]) }}">{{ $book->lastchapters->toArray()[0]['name']}}</a>  <span> {{ timeAgoOrDate($book->last_updated)}}</span> </div>
+                 </div>
                  </a>
              </div>
          </div>
@@ -102,41 +92,12 @@
                  </svg>
                  Truyện đang đọc
              </h3>
-
-             <div class="recent-item">
-                 <div class="recent-info">
-                     <div class="recent-title">Whispers of the Heart</div>
-                     <div class="recent-chapter">Chapter 42</div>
-                 </div>
-             </div>
-
-             <div class="recent-item">
-                 <div class="recent-info">
-                     <div class="recent-title">Moonlit Promises</div>
-                     <div class="recent-chapter">Chapter 28</div>
-                 </div>
-             </div>
-
-             <div class="recent-item">
-                 <div class="recent-info">
-                     <div class="recent-title">Dancing in the Rain</div>
-                     <div class="recent-chapter">Chapter 15</div>
-                 </div>
-             </div>
-
-             <div class="recent-item">
-                 <div class="recent-info">
-                     <div class="recent-title">Starlight Serenade</div>
-                     <div class="recent-chapter">Chapter 8</div>
-                 </div>
-             </div>
-
-             <div class="recent-item">
-                 <div class="recent-info">
-                     <div class="recent-title">Ocean Dreams</div>
-                     <div class="recent-chapter">Chapter 3</div>
-                 </div>
-             </div>
+ 
+                <div class="recent-list" id="reading-history">
+                    <!-- Recent items will be dynamically added here -->
+                    
+                </div>
+ 
          </div>
 
          <!-- Top Reads Box -->
@@ -270,5 +231,5 @@
          </div>
      </div>
  </section>
-    <script src="{{ asset('js/home.js') }}"></script>
+ <script src="{{ asset('js/home.js') }}"></script>
  @endsection
