@@ -2464,11 +2464,7 @@ img {
 }
 
 /* Main Layout */
-.main-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 30px;
-}
+ 
 
 /* Left Column - Story List */
 .stories-section {
@@ -2824,10 +2820,7 @@ img {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-    .main-content {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
+  
 
     .story-card {
         grid-template-columns: 100px 1fr;
